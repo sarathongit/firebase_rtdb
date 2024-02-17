@@ -9,15 +9,22 @@ const char* password = "87654321";
 
 // Firebase project details
 const char* firebaseHost = "smart-farm-98f69-default-rtdb.asia-southeast1.firebasedatabase.app";
-// For test mode, the firebaseAuth can be an empty string
 const char* firebaseAuth = "qRANFlp641ZkIut89J6rQRvUhqD9kWjy4syVO4l0";
 
+
+// pin conf
+int relay1 = D5;
+int relay2 = D6;
+int relay3 = D7;
+
+
 // DHT sensor configuration
-#define DHTPIN D4     // GPIO pin connected to the DHT sensor
-#define DHTTYPE DHT11 // DHT 11 type
+#define DHTPIN D4     
+#define DHTTYPE DHT11 
 DHT dht(DHTPIN, DHTTYPE);
 
-// Firebase configuration
+
+
 FirebaseConfig firebaseConfig;
 FirebaseAuth firebaseAuthData;
 FirebaseData firebaseData;
@@ -25,6 +32,9 @@ FirebaseData firebaseData;
 void setup() {
   Serial.begin(115200);
   dht.begin();
+  pinMode(led,OUTPUT);
+
+
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -38,6 +48,7 @@ void setup() {
   firebaseConfig.host = firebaseHost;
   firebaseConfig.signer.tokens.legacy_token = firebaseAuth;
   Firebase.begin(&firebaseConfig, &firebaseAuthData);
+  Firebase.reconnectWiFi(true);
 }
 
 void loop() {
@@ -58,19 +69,52 @@ void loop() {
   Serial.print(temperature);
   Serial.println(" *C ");
 
-  // Log humidity to Firebase
-  if (!Firebase.RTDB.setFloat(&firebaseData, "/humidity", humidity)) {
+  // Log humidity
+  if (!Firebase.RTDB.setFloat(&firebaseData, "/smart farm/humidity", humidity)) {
     Serial.println("Failed to write humidity to Firebase");
     Serial.println(firebaseData.errorReason());
   } else {
     Serial.println("Humidity logged to Firebase");
   }
 
-  // Log temperature to Firebase
-  if (!Firebase.RTDB.setFloat(&firebaseData, "/temperature", temperature)) {
+  // Log temperature 
+  if (!Firebase.RTDB.setFloat(&firebaseData, "/smart farm/temperature", temperature)) {
     Serial.println("Failed to write temperature to Firebase");
     Serial.println(firebaseData.errorReason());
   } else {
     Serial.println("Temperature logged to Firebase");
   }
+
+
+  if (Firebase.getString(ledData, "/smart farm/relay1")){
+    Serial.println(ledData.stringData());
+    if (ledData.stringData() == "1") {
+    digitalWrite(led, HIGH);
+    }
+  else if (ledData.stringData() == "0"){
+    digitalWrite(led, LOW);
+    }
+  }
+
+
+   if (Firebase.getString(ledData, "/smart farm/relay2")){
+    Serial.println(ledData.stringData());
+    if (ledData.stringData() == "1") {
+    digitalWrite(led, HIGH);
+    }
+  else if (ledData.stringData() == "0"){
+    digitalWrite(led, LOW);
+    }
+  }
+
+   if (Firebase.getString(ledData, "/smart farm/relay3")){
+    Serial.println(ledData.stringData());
+    if (ledData.stringData() == "1") {
+    digitalWrite(led, HIGH);
+    }
+  else if (ledData.stringData() == "0"){
+    digitalWrite(led, LOW);
+    }
+  }
+  delay(100);
 }
